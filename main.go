@@ -3,17 +3,53 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"encoding/json"
 	"io/ioutil"
+	"log"
+	"time"
 )
 
 func main() {
 	teamKey := "TODO"
 	apiKey := "TODO"
+	notifications := getNotifications(teamKey, apiKey)
+	notifications = collectUnreadNotifications(notifications)
+	if len(notifications) == 0 {
+		return
+	}
+	fmt.Printf("unread count: %d", len(notifications))
+	for _, n := range notifications {
+		fmt.Printf("comment: %s (%s)", n.Comment.Content, n.Created)
+	}
+}
+
+func parseDateString(d string) time.Time {
+	t, _ := time.Parse("2006-01-02T15:04:05Z", d)
+	return t
+}
+
+func collectUnreadNotifications(notifications []NotificationResponse) []NotificationResponse {
+	r := make([]NotificationResponse, 0)
+	for _, n := range notifications {
+		if !n.AlreadyRead {
+			fmt.Println(n)
+			r = append(r, n)
+		}
+	}
+	return r
+}
+
+func getNotifications(teamKey string, apiKey string) []NotificationResponse {
 	url := fmt.Sprintf("https://%s.backlog.jp/api/v2/notifications?apiKey=%s", teamKey, apiKey)
 	r, _ := http.Get(url)
 	defer r.Body.Close()
+	var notifications []NotificationResponse
 	bytes, _ := ioutil.ReadAll(r.Body)
-	fmt.Println(string(bytes))
+	error := json.Unmarshal(bytes, &notifications)
+	if error != nil {
+		log.Fatalln(error)
+	}
+	return notifications
 }
 
 type NotificationResponse struct {
