@@ -22,7 +22,7 @@ type notification struct {
 }
 
 func (n notification) GetNotifications(unreadOnly bool) []response.Notification {
-	url := fmt.Sprintf("https://%s.backlog.jp/api/v2/notifications?apiKey=%s", n.Auth.TeamKey, n.Auth.ApiKey)
+	url := n.ConstructURL("notifications")
 	r, _ := http.Get(url)
 	defer r.Body.Close()
 	var notifications []response.Notification
