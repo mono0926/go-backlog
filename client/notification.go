@@ -6,7 +6,6 @@ import (
 	"github.com/mono0926/go-backlog/response"
 	"io/ioutil"
 	"log"
-	"net/http"
 )
 
 type Notification interface {
@@ -22,8 +21,7 @@ type notification struct {
 }
 
 func (n notification) GetNotifications(unreadOnly bool) []response.Notification {
-	url := n.ConstructURL("notifications")
-	r, _ := http.Get(url)
+	r := n.Get("notifications")
 	defer r.Body.Close()
 	var notifications []response.Notification
 	bytes, _ := ioutil.ReadAll(r.Body)
